@@ -30,7 +30,8 @@
     "extends": [
       "react-app",
       "react-app/jest",
-      "prettier"
+      "prettier",
+      "plugin:react/jsx-runtime"
     ]
   },
   "browserslist": {
@@ -44,5 +45,9 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "devDependencies": {
+    "eslint-plugin-react": "^7.28.0",
+    "prettier": "2.5.1"
   }
 }
