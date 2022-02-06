@@ -122,5 +122,3 @@ export const $githubUser = createStore<TGitHubUserInfo>(initialUserInfo)
 $githubUser
     .on(getUserInfo.doneData, (_, {data}) => data.repositoryOwner)
     .reset(getUserInfo.fail)
-
-$githubUser.watch(console.log)
