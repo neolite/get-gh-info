@@ -3,27 +3,27 @@ import { createEffect, attach, createStore } from "effector";
 export const GITHUB_API_URL = "https://api.github.com/graphql";
 
 const userInfo = `
-query GetUserInfo($login: String!) {
-    repositoryOwner(login: $login) {
-        login
-        ... on User {
-            name,
-            company,
-            avatarUrl,
-            email,
-            twitterUsername,
-            followers {
-                totalCount
-            }
-            following {
-                totalCount
-            }
-            starredRepositories {
-                totalCount
+    query GetUserInfo($login: String!) {
+        repositoryOwner(login: $login) {
+            login
+            ... on User {
+                name,
+                company,
+                avatarUrl,
+                email,
+                twitterUsername,
+                followers {
+                    totalCount
+                }
+                following {
+                    totalCount
+                }
+                starredRepositories {
+                    totalCount
+                }
             }
         }
     }
-}
 `;
 
 type StatsData = {
@@ -42,7 +42,7 @@ export type TGitHubUserInfo = {
     followers?: StatsData
     following?: StatsData
     starredRepositories?: StatsData
-  }
+}
   
 export const initialUserInfo: TGitHubUserInfo = {
     databaseId: null,
@@ -60,69 +60,67 @@ export type TToken = string | null
 const GITHUB_TOKEN = process.env.REACT_APP_GITHUB_TOKEN || '';
 
 const $githubToken = createStore<TToken>(GITHUB_TOKEN);
-
 class AuthError extends Error {
     constructor(message: string) {
       super(message || "Authorization error!");
     }
-  }
-  
-  class BadTokenError extends AuthError {
+}
+class BadTokenError extends AuthError {
     constructor() {
-      super("Bad token!");
+        super("Bad token!");
     }
-  }
+}
   
-  class UnauthorizedError extends AuthError {
+class UnauthorizedError extends AuthError {
     constructor() {
-      super("Unauthorized!");
+        super("Unauthorized!");
     }
-  }
+}
   
-  const gqlQuery = createEffect({
+const gqlQuery = createEffect({
     async handler({ query, variables, token }) {
-      if (!token) throw new BadTokenError();
-      const res = await fetch(GITHUB_API_URL, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          query,
-          variables
-        })
-      });
-  
-      if (!res.ok) {
-        throw new UnauthorizedError();
-      }
-  
-      return await res.json();
+        if (!token) throw new BadTokenError();
+        const res = await fetch(GITHUB_API_URL, {
+            method: "POST",
+            headers: {
+                Authorization: `Bearer ${token}`
+            },
+            body: JSON.stringify({
+                query,
+                variables
+            })
+        });
+
+        if (!res.ok) {
+            throw new UnauthorizedError();
+        }
+
+        return await res.json();
     }
-  });
+});
   
-  const authorizedRequest = attach({
+const authorizedRequest = attach({
     effect: gqlQuery,
     source: $githubToken,
     mapParams: ({ query, variables }, token: TToken) => ({
-      query,
-      variables,
-      token
+        query,
+        variables,
+        token
     })
-  });
-  
-  const createGqlQuery = (query: string) =>
+});
+
+const createGqlQuery = (query: string) =>
     attach({
-      effect: authorizedRequest,
-      mapParams: (variables?: {}) => ({ query, variables })
+        effect: authorizedRequest,
+        mapParams: (variables?: {}) => ({ query, variables })
     });
+    
+export const getUserInfo = createGqlQuery(userInfo);
   
-  export const getUserInfo = createGqlQuery(userInfo);
-  
-  export const $githubUser = createStore<TGitHubUserInfo>(initialUserInfo)
+export const $githubUser = createStore<TGitHubUserInfo>(initialUserInfo)
 
-  $githubUser
-  .on(getUserInfo.doneData, (_, {data}) => data.repositoryOwner)
-  .reset(getUserInfo.fail)
+$githubUser
+    .on(getUserInfo.doneData, (_, {data}) => data.repositoryOwner)
+    .reset(getUserInfo.fail)
 
-  $githubUser.watch(console.log)
+$githubUser.watch(console.log)
