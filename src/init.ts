@@ -57,7 +57,7 @@ export const initialUserInfo: TGitHubUserInfo = {
   
 export type TToken = string | null
 
-const GITHUB_TOKEN = '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';
+const GITHUB_TOKEN = process.env.REACT_APP_GITHUB_TOKEN || '';
 
 const $githubToken = createStore<TToken>(GITHUB_TOKEN);
 
